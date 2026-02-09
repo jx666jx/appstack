@@ -1,0 +1,111 @@
+{
+  "options": {
+    "suspend_vms": true,
+    "disable_timeout": true,
+    "restore_timeout": true,
+    "start_vms": true,
+    "stop_reverse": true
+  },
+  "apps": [
+    {
+      "name": "Loopback",
+      "start": {
+        "method": "open_bundle",
+        "bundle_id": "com.rogueamoeba.Loopback"
+      },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "com.rogueamoeba.Loopback"
+      },
+      "process": {
+        "name": "Loopback",
+        "cmd_fragment": "Loopback"
+      }
+    },
+    {
+      "name": "Ableton",
+      "start": {
+        "method": "open_bundle",
+        "bundle_id": "com.ableton.live",
+        "path": "~/Music/Ableton/User Library/Templates/TDwhisperChatStableAbleES9Zwo31.als"
+      },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "com.ableton.live"
+      },
+      "process": {
+        "name": "Ableton Live",
+        "cmd_fragment": "Ableton Live"
+      }
+    },
+    {
+      "name": "Stable Diffusion",
+      "start": {
+        "method": "command",
+        "cmd": [
+          "./webui.sh",
+          "--no-half",
+          "--api",
+          "--listen"
+        ],
+        "cwd": "~/projects/graphix/stable-diffusion-webui",
+        "detached": true
+      },
+      "stop": {
+        "pkill_fragments": [
+          "webui.sh",
+          "launch.py"
+        ]
+      },
+      "process": {
+        "cmd_fragment": "webui.sh"
+      },
+      "healthcheck": {
+        "url": "http://127.0.0.1:7860/sdapi/v1/options",
+        "timeout": 300
+      }
+    },
+    {
+      "name": "TouchDesigner",
+      "start": {
+        "method": "open_bundle",
+        "bundle_id": "ca.derivative.TouchDesigner",
+        "path": "~/projects/graphix/TouchDesigner/whisperChatStableAble/260102-whisperChatStableAbleES9.toe"
+      },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "ca.derivative.TouchDesigner"
+      },
+      "process": {
+        "name": "TouchDesigner",
+        "cmd_fragment": "TouchDesigner"
+      }
+    },
+    {
+      "name": "OBS",
+      "start": {
+        "method": "command",
+        "cmd": [
+          "/Applications/OBS.app/Contents/MacOS/obs",
+          "--profile",
+          "JX",
+          "--collection",
+          "WhisperChatStableAbleTouch",
+          "--scene",
+          "START"
+        ],
+        "cwd": "/Applications/OBS.app/Contents/MacOS",
+        "detached": true
+      },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "com.obsproject.obs-studio",
+        "kill_exclude": "_cmiodalassistants"
+      },
+      "process": {
+        "name": "obs",
+        "cmd_fragment": "MacOS/obs"
+      }
+    }
+  ]
+}
