@@ -1,0 +1,66 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+.Spotlight-V100
+.Trashes
+._*
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Virtual environments
+.env
+.env.*
+.venv
+venv/
+ENV/
+env/
+.conda/
+.python-version
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Editors / IDE
+.vscode/
+.idea/
+*.iml
+.history/
+.ropeproject/
+
+# Logs
+*.log
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Tooling caches
+.ruff_cache/
+.nox/
+.tox/
+.cache/
+
+# Project-specific developer overrides (do not commit local secrets)
+config.local.json
+vm_passwords.json
+vms-paused
+
+# Note: runtime config for this project is expected at ~/.config/sdtdobs/config.json
+# and is intentionally outside this repository.

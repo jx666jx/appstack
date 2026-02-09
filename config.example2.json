@@ -1,0 +1,36 @@
+{
+  "apps": [
+    {
+      "name": "Zoom",
+      "start": { "method": "open_bundle", "bundle_id": "us.zoom.xos" },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "us.zoom.xos"
+      },
+      "process": { "name": "zoom.us", "cmd_fragment": "zoom.us" }
+    },
+    {
+      "name": "OBS",
+      "start": {
+        "method": "command",
+        "cmd": [
+          "/Applications/OBS.app/Contents/MacOS/obs",
+          "--profile",
+          "JX",
+          "--collection",
+          "w0rk_j3rk",
+          "--scene",
+          "live"
+        ],
+        "cwd": "/Applications/OBS.app/Contents/MacOS",
+        "detached": true
+      },
+      "stop": {
+        "method": "quit_bundle",
+        "bundle_id": "com.obsproject.obs-studio",
+        "kill_exclude": "_cmiodalassistants"
+      },
+      "process": { "name": "obs", "cmd_fragment": "MacOS/obs" }
+    }
+  ]
+}
