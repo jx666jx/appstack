@@ -1,0 +1,8 @@
+{
+  "apps": [
+    {
+      "name": "this config does nothing",
+      "start": { "method": "none" }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "NOTHING",
+      "start": { "method": "none" }
+    }
+  ],
+  "options": {
+    "suspend_vms": true,
+    "start_vms": true
+  }
+}
