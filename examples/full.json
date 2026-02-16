@@ -4,7 +4,11 @@
     "disable_timeout": true,
     "restore_timeout": true,
     "start_vms": true,
-    "stop_reverse": true
+    "stop_reverse": true,
+    "audio_check": [
+      "Universal Audio",
+      "Expert Sleepers"
+    ]
   },
   "apps": [
     {
@@ -27,7 +31,7 @@
       "start": {
         "method": "open_bundle",
         "bundle_id": "com.ableton.live",
-        "path": "~/Music/Ableton/User Library/Templates/TDwhisperChatStableAbleES9Zwo31.als"
+        "path": "~/Music/Ableton/User Library/Templates/WhisperChatStableAbleTouchES9Z.als"
       },
       "stop": {
         "method": "quit_bundle",
@@ -70,7 +74,7 @@
       "start": {
         "method": "open_bundle",
         "bundle_id": "ca.derivative.TouchDesigner",
-        "path": "~/projects/graphix/TouchDesigner/whisperChatStableAble/260102-whisperChatStableAbleES9.toe"
+        "path": "~/projects/graphix/TouchDesigner/WhisperChatStableAbleTouchES9Z/260102-WhisperChatStableAbleTouchES9Z.toe"
       },
       "stop": {
         "method": "quit_bundle",
@@ -90,7 +94,7 @@
           "--profile",
           "JX",
           "--collection",
-          "WhisperChatStableAbleTouch",
+          "WhisperChatStableAbleTouchES9Z",
           "--scene",
           "START"
         ],

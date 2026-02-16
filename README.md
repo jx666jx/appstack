@@ -13,132 +13,97 @@ This project was born from the drudgery and pitfalls of a manual, multi‑app st
 
 Shutting down was just as tedious and required performing the reverse of the startup sequence.
 
-Missing any step or running them out of order meant problems at some point in the chain. `config.example.json` captures that full sequence so it is one command instead of a checklist. Swap configs to run different stacks (two examples are included).
+Missing any step or running them out of order meant problems at some point in the chain. The example configs under `examples/` capture those sequences so it is one command instead of a checklist. Swap configs to run different stacks.
 
 
 ## Quick Start
 
-- Recommended: copy the scripts to your path/bin
+- Recommended: link the scripts into your path/bin
   ```bash
-  cp *.py ~/.local/bin
-  chmod +x ~/.local/bin/*.py
-  ```
-
-
-- Alternative: keep the repo and symlink the launchers to your bin
-  ```bash
+  chmod +x ./*.py
   ln -sf "$PWD/appstack_up.py" ~/.local/bin/appstack_up.py
   ln -sf "$PWD/appstack_down.py" ~/.local/bin/appstack_down.py
   ```
 
-
 - Use the appstack examples in this repo:
   ```bash
   mkdir -p ~/.config/appstack
-  cp ./config.example.json ~/.config/appstack/config.json
-  cp ./config.example2.json ~/.config/appstack/work.json
+  cp ./examples/full.json ~/.config/appstack/config.json
+  cp ./examples/work.json ~/.config/appstack/work.json
   chmod -R 700 ~/.config/appstack
   ```
-
 
 - Start application stack with default config:
   ```bash
   appstack_up.py
   ```
 
+- Stop application stack and restore settings:
+  ```bash
+  appstack_down.py
+  ```
 
 - Start different stack with alternate config:
   ```bash
   appstack_up.py ~/.config/appstack/work.json
   ```
 
-
-- Stop application stack and restore settings:
-  ```bash
-  appstack_down.py
-  ```
-
-
 - Stop different stack with alternate config:
   ```bash
   appstack_down.py ~/.config/appstack/work.json
   ```
 
-## Required Config
-A config file must be present at the default location or passed as the first argument to the script. The `apps` list is required and drives all start/stop behavior.
+## Configuration
+A config file must be present at the default location (`~/.config/appstack/config.json`) or 
+passed as the first argument to the script.
+- Root keys:
+  - `apps`: (required) ordered list of applications to start/stop
+  - `options`: (optional) settings that control global behaviors
 
-Create a default config at: `~/.config/appstack/config.json`
+### Apps block
 ```json
-{
-  "options": {
-    "suspend_vms": true,
-    "disable_timeout": true,
-    "restore_timeout": true,
-    "start_vms": true,
-    "stop_reverse": true
-  },
   "apps": [
     {
       "name": "Loopback",
       "start": { "method": "open_bundle", "bundle_id": "com.rogueamoeba.Loopback" },
-      "stop": { "method": "quit_bundle", "bundle_id": "com.rogueamoeba.Loopback" },
+      "stop": { 
+        "method": "quit_bundle", 
+        "bundle_id": "com.rogueamoeba.Loopback",
+        "pkill_fragments": ["Loopback"],
+        "kill_exclude": "helper"
+      },
       "process": { "name": "Loopback", "cmd_fragment": "Loopback" }
     }
   ]
 }
 ```
 
-### Optional Config (VM passwords)
-Create encrypted VM password mapping at: ~/.config/appstack/vm_passwords.json
-
-```json
-{
-	"/Users/you/Virtual Machines.localized/YourVM/YourVM.vmx": "yourpassword"
-}
-```
-
-### App List Format
-If `apps` is missing or empty, the scripts will error.
 Each app entry supports:
 - `name` (string, required)
 - `enabled` (bool, optional): skip if false
 - `start` (object): how to start the app
+  - `method`: `open_bundle` (macOS), `command`, or `none`
+  - For `open_bundle`: `bundle_id`, optional `path`, optional `args`
+  - For `command`: `cmd` (array), optional `cwd`, optional `detached`
+  - Per-platform: nest under `start.macos` / `start.windows` / `start.linux`
 - `stop` (object): how to stop the app
+  - `method`: `quit_bundle` (macOS), `quit_name` (macOS), or `command`
+  - `pkill_fragments` (array): extra command-line fragments to `pkill -f`
+  - `kill_exclude` (string): substring to exclude when killing by name
+  - Per-platform: nest under `stop.macos` / `stop.windows` / `stop.linux`
 - `process` (object): how to detect if it is running
-- `healthcheck` (object): optional URL check for readiness
+  - `name` (macOS System Events)
+  - `cmd_fragment` (matched by `pgrep -f` on macOS/Linux)
+  - Platform notes: On Windows, prefer explicit `stop.method: command` with `taskkill`; `pgrep` is not available.
+- `healthcheck` (object, optional): URL readiness probe
+  - `url` (string)
+  - `timeout` (seconds)
+  - `interval` (seconds)
 
-### Options
-These actions only run when explicitly set to `true`:
-- `options.suspend_vms`: suspend running VMs before starting apps
-- `options.start_vms`: list previously paused VMs to resume
-- `options.disable_timeout`: disable macOS sleep/screensaver/lock timers
-- `options.restore_timeout`: restore macOS sleep/screensaver/lock timers
-- `options.stop_reverse`: stop apps in reverse order of the list
+#### Per‑Platform start/stop blocks
+Per-platform app configurations are supported for `start`/`stop` blocks.
 
-#### Start/Stop Methods
-`start.method`:
-- `open_bundle` (macOS): `{ "bundle_id": "...", "path": "...", "args": [...] }`
-- `command` (cross‑platform): `{ "cmd": [...], "cwd": "...", "detached": true }`
-- `none`: do nothing
-
-`stop.method`:
-- `quit_bundle` (macOS): `{ "bundle_id": "..." }`
-- `quit_name` (macOS): `{ "app_name": "..." }`
-- `command` (cross‑platform): `{ "cmd": [...], "cwd": "..." }`
-
-Stop also supports:
-- `pkill_fragments`: list of command‑line fragments to `pkill -f`
-- `kill_exclude`: substring to skip when name‑killing
-
-`process` supports:
-- `name`: process name (macOS System Events)
-- `cmd_fragment`: fragment matched by `pgrep -f`
-
-`healthcheck` supports:
-- `url`, `timeout` (seconds), `interval` (seconds)
-
-#### Per‑Platform Blocks
-Per-platform blocks are supported for `start`/`stop`:
+Selection order: current OS key (`macos`/`windows`/`linux`) → `default` → empty block (no-op for start; stop falls back to `pkill`/name-kill if `process` hints are present).
 ```json
 {
   "apps": [
@@ -146,7 +111,7 @@ Per-platform blocks are supported for `start`/`stop`:
       "name": "OBS",
       "start": {
         "macos": { "method": "command", "cmd": ["/Applications/OBS.app/Contents/MacOS/obs"] },
-        "windows": { "method": "command", "cmd": ["C:\\\\Program Files\\\\obs-studio\\\\bin\\\\64bit\\\\obs64.exe"] }
+        "windows": { "method": "command", "cmd": ["C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"] }
       },
       "stop": {
         "macos": { "method": "quit_bundle", "bundle_id": "com.obsproject.obs-studio" },
@@ -158,11 +123,44 @@ Per-platform blocks are supported for `start`/`stop`:
 }
 ```
 
+
+### options block
+```json
+"options": {
+  "suspend_vms": true,
+  "disable_timeout": true,
+  "restore_timeout": true,
+  "start_vms": true,
+  "stop_reverse": true,
+  "audio_check": ["Universal Audio", "Expert Sleepers"]
+}
+```
+If an option is empty or missing, it is skipped. All booleans default to `false`.
+- `suspend_vms` (bool): suspend running VMs before starting apps
+- `start_vms` (bool): list previously paused VMs to resume
+- `disable_timeout` (bool): disable macOS sleep/screensaver/lock timers
+- `restore_timeout` (bool): restore macOS sleep/screensaver/lock timers
+- `stop_reverse` (bool): stop apps in reverse order of the list
+- `audio_check` (string[]): audio interface names to verify are connected (cross‑platform); exits with error if any are missing
+
+
+## VM passwords (Optional Config)
+Create encrypted VM password mapping at: `~/.config/appstack/vm_passwords.json`. This is used to suspend any password encrypted VMs.
+
+**WARNING**: This is a security concern, as you are storing the unencrypted passwords for these VMs. 
+
+```json
+{
+	"/Users/you/Virtual Machines.localized/YourVM/YourVM.vmx": "yourpassword"
+}
+```
+
 ## Script Reference
 
 ### appstack_up.py
 - Orchestrate appstack startup sequence:
-	- Optionally suspend running VMs
+	- Optionally check if audio interfaces are available
+  - Optionally suspend running VMs
 	- Optionally disable macOS sleep/screensaver/lock
 	- Launch apps defined in config
 
@@ -172,16 +170,19 @@ Per-platform blocks are supported for `start`/`stop`:
 	- Optionally restore macOS sleep/screensaver/lock
 	- Optionally list any paused VMs to resume
 
-### config.example.json
+### examples/full.json
 - Full example stack with options enabled.
-- Includes Ableton Live, TouchDesigner, Loopback, Stable Diffusion, and OBS entries.
+- Includes entries for Ableton Live, TouchDesigner, Loopback, Stable Diffusion, and OBS.
 - Uses `stop_reverse: true` so shutdown happens in reverse order.
 
-### config.example2.json
+### examples/work.json
 - Lightweight example focused on a smaller app set to connect OBS to Zoom sessions.
 
+### examples/minimal.json
+- Minimal config showing only the required `apps` array and a no-op start.
+
 ### app_manager.py
-- Config-driven start/stop helpers used by the start/stop scripts.
+- Config-driven start/stop helpers used by the up/down scripts.
 
 ### timeout_manager.py
 - Saves current power/screensaver/lock settings to `~/.cache/timeout_manager.json`.
@@ -199,6 +200,7 @@ Per-platform blocks are supported for `start`/`stop`:
 ### util.py
 - ANSI colors and glyphs for consistent output styling
 - Shared config loader used by start/stop scripts
+- Cross-platform audio device detection (`get_audio_output`, `check_audio_devices`)
 
 ## Notes
 - `timeout_manager.py` requires sudo for `pmset`.
