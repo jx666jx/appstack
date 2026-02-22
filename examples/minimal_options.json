@@ -6,7 +6,7 @@
     }
   ],
   "options": {
-    "suspend_vms": true,
+    "suspend_vms": "stop",
     "start_vms": true
   }
 }

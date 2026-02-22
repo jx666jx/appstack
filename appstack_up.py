@@ -55,21 +55,41 @@ def check_audio(audio_options: dict):
     print(f"{GREEN}{CHECK} All audio interfaces available.{RESET}")
 
 
-def suspend_vms():
+def suspend_vms(vm_options: dict):
     """Suspend all running virtual machines."""
-    print("Suspending VMs...")
+    val = vm_options.get("suspend_vms")
+    # Determine action: boolean True -> suspend (legacy); string -> suspend/stop
+    action = None
+    if isinstance(val, bool):
+        if val:
+            action = "suspend"
+    elif isinstance(val, str):
+        v = val.strip().lower()
+        if v in ("suspend", "paused", "pause"):
+            action = "suspend"
+        elif v in ("stop", "poweroff", "shutdown"):
+            action = "stop"
+    else:
+        # No suspend_vms option provided
+        return
+
+    if action is None:
+        print(f"{RED}{CROSS} Invalid suspend_vms option: {val}{RESET}")
+        sys.exit(1)
+
+    print(f"Applying VM action: {action} ...")
     try:
         subprocess.run(
             [
                 sys.executable,
                 str(Path(__file__).resolve().parent / "vm_manager.py"),
-                "suspend",
+                action,
             ],
             check=True,
         )
-        print(f"{GREEN}{CHECK} VMs suspended.{RESET}")
+        print(f"{GREEN}{CHECK} VMs {action} completed.{RESET}")
     except subprocess.CalledProcessError:
-        print(f"{RED}{CROSS} Failed to suspend VMs!{RESET}")
+        print(f"{RED}{CROSS} Failed to {action} VMs!{RESET}")
         sys.exit(1)
 
 
@@ -80,8 +100,8 @@ if __name__ == "__main__":
     options = config.get("options", {})
     if options.get("audio_check"):
         check_audio(options)
-    if options.get("suspend_vms") is True:
-        suspend_vms()
+    if options.get("suspend_vms"):
+        suspend_vms(options)
         time.sleep(2)
     if options.get("disable_timeout") is True:
         disable_timeout()
