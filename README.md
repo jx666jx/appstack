@@ -136,7 +136,9 @@ Selection order: current OS key (`macos`/`windows`/`linux`) → `default` → em
 }
 ```
 If an option is empty or missing, it is skipped. All booleans default to `false`.
-- `suspend_vms` (bool): suspend running VMs before starting apps
+- `suspend_vms` (bool|string): suspend or stop running VMs before starting apps. Backwards compatible:
+  - If `true` or the string value is `"suspend"`, `"paused"`, or `"pause"`, then suspend.
+  - If the string value is `"stop"`, `"poweroff"`, or `"shutdown"`, then stop.
 - `start_vms` (bool): list previously paused VMs to resume
 - `disable_timeout` (bool): disable macOS sleep/screensaver/lock timers
 - `restore_timeout` (bool): restore macOS sleep/screensaver/lock timers
@@ -145,7 +147,7 @@ If an option is empty or missing, it is skipped. All booleans default to `false`
 
 
 ## VM passwords (Optional Config)
-Create encrypted VM password mapping at: `~/.config/appstack/vm_passwords.json`. This is used to suspend any password encrypted VMs.
+Create encrypted VM password mapping at: `~/.config/appstack/vm_passwords.json`. This is used to suspend any password encrypted VMs. Consider restricting the file permissions so only your user can read it: `chmod 600 ~/.config/appstack/vm_passwords.json`
 
 **WARNING**: This is a security concern, as you are storing the unencrypted passwords for these VMs. 
 
